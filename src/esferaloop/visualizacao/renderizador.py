@@ -102,21 +102,38 @@ class Visualizador: # Classe dedicada à renderização visual da malha
         plt.show() # Abre a janela com a progressão completa
 
     @staticmethod # Define método estático para gráfico interativo
-    def plot_interativo(malhas): # Cria janela com slider para navegar pelos níveis
-        """Cria um gráfico interativo com um slider para escolher o nível de subdivisão.""" # Docstring
-        fig = plt.figure(figsize=(10, 9)) # Cria figura de tamanho quase quadrado
+    def plot_interativo(malhas, metricas_por_nivel=None): # Cria janela com slider para navegar pelos níveis
+        """Cria um gráfico interativo com um slider e painel de estatísticas.""" # Docstring
+        fig = plt.figure(figsize=(11, 9)) # Cria figura levemente maior para as estatísticas
         ax = fig.add_subplot(111, projection='3d') # Cria o eixo 3D principal
-        plt.subplots_adjust(bottom=0.2) # Reserva espaço inferior para o slider
+        plt.subplots_adjust(bottom=0.2, top=0.95) # Reserva espaço para o slider e margem superior
 
         # Função para plotar um nível específico # Função interna de atualização (callback)
         def atualizar_plot(val): # val recebe o valor do nível vindo do slider
             nv = int(slider_nivel.val) # Pega o nível atual do slider correspondente
             
-            ax.clear() # Limpa o desenho anterior para evitar sobreposição
+            ax.clear() # Limpa o desenho anterior (malha e texto)
             malha = malhas[nv] # Pega a malha correspondente ao nível
+            
             Visualizador.plotar_malha(malha, title=f"Subdivisão de Loop - Nível {nv}", 
                                mostrar_wireframe=True, mostrar_superficie=True, ax=ax,
                                intensidade_luz=1.0) # Redesenha com iluminação total fixa
+
+            # --- ADICIONA ESTATÍSTICAS EM TEMPO REAL ---
+            if metricas_por_nivel:
+                m = metricas_por_nivel[nv]
+                texto_estatisticas = (
+                    f"Estatísticas Nível {nv}:\n"
+                    f"Vértices: {m['num_vertices']}\n"
+                    f"Faces: {m['num_faces']}\n"
+                    f"Erro Médio Raio: {m['erro_medio']:.6f}\n"
+                    f"Desvio Área: {m['desvio_padrao_area']:.6f}"
+                )
+                # Adiciona texto no canto superior esquerdo (coordenadas 2D da figura)
+                ax.text2D(0.05, 0.95, texto_estatisticas, transform=ax.transAxes, 
+                          fontsize=11, family='monospace', verticalalignment='top',
+                          bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+
             fig.canvas.draw_idle() # Atualiza a tela de forma eficiente
 
         # Configurar Slider # Criação do componente visual
@@ -129,7 +146,5 @@ class Visualizador: # Classe dedicada à renderização visual da malha
 
         # Plot inicial
         atualizar_plot(None) # Chama o plot inicial manualmente
-
-        plt.show() # Inicia o loop de eventos da interface gráfica
 
         plt.show() # Inicia o loop de eventos da interface gráfica

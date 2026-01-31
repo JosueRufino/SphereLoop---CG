@@ -138,5 +138,7 @@ class SubdivisaoLoopEsfera: # Define a classe principal que coordena a subdivis�
         exibir_tabela_estatisticas(todas_metricas) # Exibe a tabela formatada no console
 
     def demo_interativa(self): # Inicia o modo interativo
-        """Inicia a visualização interativa com slider.""" # Docstring
-        Visualizador.plot_interativo(self.malhas) # Abre janela com controle deslizante de nível
+        """Inicia a visualização interativa com slider e estatísticas em tempo real.""" # Docstring
+        # Calcula as métricas de todos os níveis antecipadamente para performance no slider
+        metricas_por_nivel = [obter_metricas_malha(m) for m in self.malhas]
+        Visualizador.plot_interativo(self.malhas, metricas_por_nivel) # Abre janela com controle e estatísticas

@@ -64,12 +64,8 @@ class Visualizador: # Classe dedicada à renderização visual da malha
                 v = np.vstack([v, v[0]]) # Adiciona o primeiro ponto novamente ao final para fechar o triângulo ao desenhar
                 ax.plot(v[:,0], v[:,1], v[:,2], color='black', linewidth=0.5) # Plota as linhas pretas finas
 
-        # --- ADICIONA PLANO DE FUNDO (PISO) ---
-        piso_z = -1.1 # Piso mais próximo da esfera para não dispersar a sombra
-        # Piso ajustado
-        xx, yy = np.meshgrid(np.linspace(-2, 2, 10), np.linspace(-2, 2, 10))
-        zz = np.full_like(xx, piso_z)
-        ax.plot_surface(xx, yy, zz, alpha=0.15, color='gray', zorder=0)
+        # --- ADICIONA PLANO DE FUNDO (PISO - REMOVIDO VISUALMENTE) ---
+        piso_z = -1.1 # Mantemos o valor para o cálculo da sombra, mas não desenhamos o piso
 
         # --- CÁLCULO DE SOMBRA PROJETADA ---
         # Projeta cada vértice na direção da luz até atingir o plano do piso
@@ -110,32 +106,30 @@ class Visualizador: # Classe dedicada à renderização visual da malha
         """Cria um gráfico interativo com um slider para escolher o nível de subdivisão.""" # Docstring
         fig = plt.figure(figsize=(10, 9)) # Cria figura de tamanho quase quadrado
         ax = fig.add_subplot(111, projection='3d') # Cria o eixo 3D principal
-        plt.subplots_adjust(bottom=0.25) # Reserva espaço inferior para os sliders
+        plt.subplots_adjust(bottom=0.2) # Reserva espaço inferior para o slider
 
         # Função para plotar um nível específico # Função interna de atualização (callback)
-        def atualizar_plot(val): # val não é usado diretamente para pegar ambos os valores dos sliders
+        def atualizar_plot(val): # val recebe o valor do nível vindo do slider
             nv = int(slider_nivel.val) # Pega o nível atual do slider correspondente
-            ilum = slider_ilum.val # Pega a intensidade de iluminação atual
             
             ax.clear() # Limpa o desenho anterior para evitar sobreposição
             malha = malhas[nv] # Pega a malha correspondente ao nível
             Visualizador.plotar_malha(malha, title=f"Subdivisão de Loop - Nível {nv}", 
                                mostrar_wireframe=True, mostrar_superficie=True, ax=ax,
-                               intensidade_luz=ilum) # Redesenha com a iluminação escolhida
+                               intensidade_luz=1.0) # Redesenha com iluminação total fixa
             fig.canvas.draw_idle() # Atualiza a tela de forma eficiente
 
-        # Configurar Sliders # Criação dos componentes visuais
-        ax_nivel = plt.axes([0.2, 0.1, 0.6, 0.03]) # Posição do slider de Nível
-        ax_ilum = plt.axes([0.2, 0.05, 0.6, 0.03]) # Posição do slider de Iluminação
+        # Configurar Slider # Criação do componente visual
+        ax_nivel = plt.axes([0.2, 0.05, 0.6, 0.03]) # Posição do slider de Nível
         
         slider_nivel = Slider(ax_nivel, 'Nível', 0, len(malhas)-1, valinit=0, valstep=1)
-        slider_ilum = Slider(ax_ilum, 'Iluminação', 0.0, 1.0, valinit=0.0)
 
-        # Conectar eventos # Liga o movimento dos sliders à função de atualização
+        # Conectar evento # Liga o movimento do slider à função de atualização
         slider_nivel.on_changed(atualizar_plot)
-        slider_ilum.on_changed(atualizar_plot)
 
         # Plot inicial
         atualizar_plot(None) # Chama o plot inicial manualmente
+
+        plt.show() # Inicia o loop de eventos da interface gráfica
 
         plt.show() # Inicia o loop de eventos da interface gráfica

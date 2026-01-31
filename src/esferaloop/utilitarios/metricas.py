@@ -34,6 +34,7 @@ def obter_metricas_malha(malha, raio_alvo=1.0) -> dict: # Função para calcular
     return { # Retorna um dicionário com todos os dados calculados
         "num_vertices": len(vertices), # Quantidade total de pontos
         "num_faces": len(faces), # Quantidade total de triângulos
+        "num_arestas": len(malha.obter_arestas()), # Quantidade total de arestas únicas
         "erro_medio": erro_medio, # Média de erro em relação à esfera ideal
         "desvio_padrao_raio": desvio_padrao_raio, # Medida de rugosidade/irregularidade
         "area_media": area_media, # Área média das faces
@@ -44,10 +45,10 @@ def obter_metricas_malha(malha, raio_alvo=1.0) -> dict: # Função para calcular
 
 def exibir_tabela_estatisticas(todas_metricas: list): # Função para imprimir os resultados de forma organizada
     """Exibe uma tabela formatada com as estatísticas de cada nível.""" # Docstring
-    print("\n" + "="*80) # Imprime uma linha decorativa superior (80 sinais de igual)
-    print(f"{'Nível':<6} | {'Vértices':<8} | {'Faces':<8} | {'Erro Raio':<12} | {'Desvio Raio':<12} | {'Desvio Área':<12}") # Cabeçalho da tabela
-    print("-" * 95) # Linha separadora do cabeçalho
+    print("\n" + "="*95) # Imprime uma linha decorativa superior
+    print(f"{'Nível':<6} | {'Vértices':<8} | {'Faces':<8} | {'Arestas':<8} | {'Erro Raio':<12} | {'Desvio Raio':<12} | {'Desvio Área':<12}") # Cabeçalho da tabela
+    print("-" * 110) # Linha separadora do cabeçalho
     for i, meta in enumerate(todas_metricas): # Itera por cada nível de métrica fornecido
         # Imprime os valores com alinhamento e precisão decimal
-        print(f"{i:<6} | {meta['num_vertices']:<8} | {meta['num_faces']:<8} | {meta['erro_medio']:<12.6f} | {meta['desvio_padrao_raio']:<12.6f} | {meta['desvio_padrao_area']:<12.6f}")
-    print("="*95 + "\n") # Imprime uma linha decorativa inferior
+        print(f"{i:<6} | {meta['num_vertices']:<8} | {meta['num_faces']:<8} | {meta['num_arestas']:<8} | {meta['erro_medio']:<12.6f} | {meta['desvio_padrao_raio']:<12.6f} | {meta['desvio_padrao_area']:<12.6f}")
+    print("="*110 + "\n") # Imprime uma linha decorativa inferior

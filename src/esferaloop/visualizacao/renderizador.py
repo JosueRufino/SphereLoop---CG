@@ -125,6 +125,7 @@ class Visualizador: # Classe dedicada à renderização visual da malha
                 texto_estatisticas = (
                     f"Estatísticas Nível {nv}:\n"
                     f"Vértices: {m['num_vertices']}\n"
+                    f"Arestas: {m['num_arestas']}\n"
                     f"Faces: {m['num_faces']}\n"
                     f"Erro Médio Raio: {m['erro_medio']:.6f}\n"
                     f"Desvio Área: {m['desvio_padrao_area']:.6f}"

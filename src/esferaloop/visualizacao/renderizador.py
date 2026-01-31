@@ -28,20 +28,29 @@ class Visualizador: # Classe dedicada à renderização visual da malha
                 modulo = np.linalg.norm(normais, axis=1)[:, np.newaxis]
                 normais = np.where(modulo > 0, normais / modulo, 0)
 
-            direcao_luz = np.array([1.0, 1.0, 1.0]) # Luz vindo da diagonal superior
+            direcao_luz = np.array([0.8, 0.4, 1.2]) # Luz inclinada para o lado para sombra lateral
             direcao_luz /= np.linalg.norm(direcao_luz)
 
-            # Intensidade baseada na Lei de Lambert
+            # --- CÁLCULO DE ILUMINAÇÃO (Lambert + Refletida) ---
             dot_product = np.dot(normais, direcao_luz)
             
-            # Interpolação: se intensidade_luz=0, fica plano (1.0). Se 1.0, segue a sombra.
-            intesidades_calculadas = np.clip(dot_product, 0.1, 1.0)
+            # Luz direta (lado iluminado)
+            direta = np.clip(dot_product, 0.0, 1.0)
+            
+            # Luz Refletida (brilho sutil na base da sombra, conforme imagem de referência)
+            refletida = np.clip(-dot_product, 0.0, 1.0) * 0.2 
+            
+            # Intensidade base (com luz ambiente mínima)
+            intesidades_calculadas = np.clip(direta + refletida + 0.1, 0.0, 1.0)
+            
+            # Interpolação para controle do slider
             intensidades_finais = (1.0 * (1 - intensidade_luz)) + (intesidades_calculadas * intensidade_luz)
 
-            # Converte intensidades em cores (tons de ciano)
+            # Converte intensidades em cores (tons de ciano/cinza azulado)
             cores_faces = []
             for i in intensidades_finais:
-                cores_faces.append((0, i * 0.8 + 0.1, i * 0.8 + 0.1)) 
+                # Cor base: azul petróleo/ciano suave
+                cores_faces.append((0, i * 0.7 + 0.1, i * 0.7 + 0.2)) 
 
             colecao = Poly3DCollection(poly3d, facecolors=cores_faces, 
                                      edgecolors='black' if mostrar_wireframe else 'none',
@@ -55,13 +64,33 @@ class Visualizador: # Classe dedicada à renderização visual da malha
                 v = np.vstack([v, v[0]]) # Adiciona o primeiro ponto novamente ao final para fechar o triângulo ao desenhar
                 ax.plot(v[:,0], v[:,1], v[:,2], color='black', linewidth=0.5) # Plota as linhas pretas finas
 
+        # --- ADICIONA PLANO DE FUNDO (PISO) ---
+        piso_z = -1.1 # Piso mais próximo da esfera para não dispersar a sombra
+        # Piso ajustado
+        xx, yy = np.meshgrid(np.linspace(-2, 2, 10), np.linspace(-2, 2, 10))
+        zz = np.full_like(xx, piso_z)
+        ax.plot_surface(xx, yy, zz, alpha=0.15, color='gray', zorder=0)
+
+        # --- CÁLCULO DE SOMBRA PROJETADA ---
+        # Projeta cada vértice na direção da luz até atingir o plano do piso
+        direcao_luz = np.array([0.8, 0.4, 1.2])
+        direcao_luz /= np.linalg.norm(direcao_luz)
+        
+        t = (piso_z - vertices[:, 2]) / direcao_luz[2]
+        vertices_sombra = vertices + t[:, np.newaxis] * direcao_luz
+        
+        poly_sombra = [[vertices_sombra[idx] for idx in face] for face in faces]
+        # Sombra suave e sem bordas para silhueta limpa
+        sombra_colecao = Poly3DCollection(poly_sombra, facecolors='#111111', alpha=0.4, edgecolors='none', zorder=1)
+        ax.add_collection3d(sombra_colecao)
+
         # Ajustar limites e labels # Configurações de visualização da cena
-        limite = 1.1 # Define o limite dos eixos um pouco maior que o raio da esfera (1.0)
-        ax.set_xlim([-limite, limite]) # Define o alcance do eixo X
-        ax.set_ylim([-limite, limite]) # Define o alcance do eixo Y
-        ax.set_zlim([-limite, limite]) # Define o alcance do eixo Z
+        # Limites ajustados para a nova posição da sombra (mais para o lado)
+        ax.set_xlim([-1.8, 1.2]) 
+        ax.set_ylim([-1.5, 1.5]) 
+        ax.set_zlim([piso_z, 1.5]) 
         ax.set_title(title) # Define o título do gráfico
-        ax.axis('off') # Desativa a exibição dos eixos (X, Y, Z) para o foco ser total na malha
+        ax.axis('off') # Desativa a exibição dos eixos
 
     @staticmethod # Define método estático para progressão
     def mostrar_progressao(malhas): # Mostra a evolução da malha nível por nível
